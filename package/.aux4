@@ -79,7 +79,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
+                "text": "Site domain (e.g. example.com)",
                 "arg": true
               },
               {
@@ -136,7 +136,7 @@
               },
               {
                 "name": "siteUrl",
-                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected."
+                "text": "Site domain (e.g. example.com)"
               }
             ]
           }
@@ -185,7 +185,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
+                "text": "Site domain (e.g. example.com)",
                 "arg": true
               }
             ]
@@ -203,7 +203,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site domain to add (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
+                "text": "Site domain to add (e.g. example.com)",
                 "arg": true
               }
             ]
@@ -222,7 +222,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site domain to remove (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
+                "text": "Site domain to remove (e.g. example.com)",
                 "arg": true
               }
             ]
@@ -245,7 +245,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
+                "text": "Site domain (e.g. example.com)",
                 "arg": true
               }
             ]
@@ -264,7 +264,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
+                "text": "Site domain (e.g. example.com)",
                 "arg": true
               },
               {
@@ -288,7 +288,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
+                "text": "Site domain (e.g. example.com)",
                 "arg": true
               },
               {
@@ -313,7 +313,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
+                "text": "Site domain (e.g. example.com)",
                 "arg": true
               },
               {
