@@ -8,12 +8,12 @@ The `get` command retrieves information about a specific site in Search Console,
 aux4 google search-console sites get <siteUrl>
 ```
 
-siteUrl  The site URL including protocol (e.g. https://example.com or sc-domain:example.com)
+siteUrl  Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected. Accepts example.com, sc-domain:example.com, or https://example.com.
 
 #### Example
 
 ```bash
-aux4 google search-console sites get https://example.com
+aux4 google search-console sites get example.com
 ```
 
 ```text

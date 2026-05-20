@@ -18,6 +18,6 @@ aux4 google search-console sitemaps <subcommand>
 #### Example
 
 ```bash
-aux4 google search-console sitemaps list https://example.com
-aux4 google search-console sitemaps submit https://example.com https://example.com/sitemap.xml
+aux4 google search-console sitemaps list example.com
+aux4 google search-console sitemaps submit example.com https://example.com/sitemap.xml
 ```

@@ -79,7 +79,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site URL including protocol (e.g. https://example.com or sc-domain:example.com)",
+                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
                 "arg": true
               },
               {
@@ -136,7 +136,7 @@
               },
               {
                 "name": "siteUrl",
-                "text": "Site URL as defined in Search Console (e.g. https://example.com)"
+                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected."
               }
             ]
           }
@@ -176,7 +176,8 @@
         {
           "name": "get",
           "execute": [
-            "set:encodedUrl=!echo -n 'value(siteUrl)' | jq -Rr @uri",
+            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
+            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
             "${packageDir}/lib/gapi.sh GET 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}'"
           ],
           "help": {
@@ -184,7 +185,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site URL including protocol (e.g. https://example.com)",
+                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
                 "arg": true
               }
             ]
@@ -193,7 +194,8 @@
         {
           "name": "add",
           "execute": [
-            "set:encodedUrl=!echo -n 'value(siteUrl)' | jq -Rr @uri",
+            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
+            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
             "${packageDir}/lib/gapi.sh PUT 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}'"
           ],
           "help": {
@@ -201,7 +203,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site URL to add (e.g. https://example.com)",
+                "text": "Site domain to add (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
                 "arg": true
               }
             ]
@@ -211,7 +213,8 @@
           "name": "delete",
           "execute": [
             "confirm:Are you sure you want to remove this site from Search Console?",
-            "set:encodedUrl=!echo -n 'value(siteUrl)' | jq -Rr @uri",
+            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
+            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
             "${packageDir}/lib/gapi.sh DELETE 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}'"
           ],
           "help": {
@@ -219,7 +222,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site URL to remove",
+                "text": "Site domain to remove (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
                 "arg": true
               }
             ]
@@ -233,7 +236,8 @@
         {
           "name": "list",
           "execute": [
-            "set:encodedUrl=!echo -n 'value(siteUrl)' | jq -Rr @uri",
+            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
+            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
             "${packageDir}/lib/gapi.sh GET 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}/sitemaps'"
           ],
           "help": {
@@ -241,7 +245,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site URL (e.g. https://example.com)",
+                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
                 "arg": true
               }
             ]
@@ -250,7 +254,8 @@
         {
           "name": "get",
           "execute": [
-            "set:encodedUrl=!echo -n 'value(siteUrl)' | jq -Rr @uri",
+            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
+            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
             "set:encodedFeed=!echo -n 'value(feedpath)' | jq -Rr @uri",
             "${packageDir}/lib/gapi.sh GET 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}/sitemaps/${encodedFeed}'"
           ],
@@ -259,7 +264,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site URL (e.g. https://example.com)",
+                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
                 "arg": true
               },
               {
@@ -273,7 +278,8 @@
         {
           "name": "submit",
           "execute": [
-            "set:encodedUrl=!echo -n 'value(siteUrl)' | jq -Rr @uri",
+            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
+            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
             "set:encodedFeed=!echo -n 'value(feedpath)' | jq -Rr @uri",
             "${packageDir}/lib/gapi.sh PUT 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}/sitemaps/${encodedFeed}'"
           ],
@@ -282,7 +288,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site URL (e.g. https://example.com)",
+                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
                 "arg": true
               },
               {
@@ -297,7 +303,8 @@
           "name": "delete",
           "execute": [
             "confirm:Are you sure you want to delete this sitemap?",
-            "set:encodedUrl=!echo -n 'value(siteUrl)' | jq -Rr @uri",
+            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
+            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
             "set:encodedFeed=!echo -n 'value(feedpath)' | jq -Rr @uri",
             "${packageDir}/lib/gapi.sh DELETE 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}/sitemaps/${encodedFeed}'"
           ],
@@ -306,7 +313,7 @@
             "variables": [
               {
                 "name": "siteUrl",
-                "text": "Site URL (e.g. https://example.com)",
+                "text": "Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.",
                 "arg": true
               },
               {

@@ -10,10 +10,10 @@ Requires write scopes: `https://www.googleapis.com/auth/webmasters`
 aux4 google search-console sites add <siteUrl>
 ```
 
-siteUrl  The site URL to add (e.g. https://example.com)
+siteUrl  Site domain to add (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.
 
 #### Example
 
 ```bash
-aux4 google search-console sites add https://example.com
+aux4 google search-console sites add example.com
 ```

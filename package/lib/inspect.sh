@@ -7,6 +7,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 INSPECTION_URL="$1"
 SITE_URL="$2"
+case "$SITE_URL" in
+  https://*|http://*|sc-domain:*) ;;
+  *) SITE_URL="sc-domain:$SITE_URL" ;;
+esac
 
 BODY=$(jq -n \
   --arg url "$INSPECTION_URL" \

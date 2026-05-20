@@ -33,5 +33,5 @@ aux4 google search-console <subcommand>
 
 ```bash
 aux4 google search-console sites list
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31
 ```

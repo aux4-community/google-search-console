@@ -6,6 +6,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 SITE_URL="$1"
+case "$SITE_URL" in
+  https://*|http://*|sc-domain:*) ;;
+  *) SITE_URL="sc-domain:$SITE_URL" ;;
+esac
 START_DATE="$2"
 END_DATE="$3"
 DIMENSIONS="${4:-}"

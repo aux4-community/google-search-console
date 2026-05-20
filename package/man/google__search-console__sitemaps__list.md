@@ -8,12 +8,12 @@ The `list` command returns all sitemaps submitted for a site in Google Search Co
 aux4 google search-console sitemaps list <siteUrl>
 ```
 
-siteUrl  Site URL (e.g. https://example.com)
+siteUrl  Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.
 
 #### Example
 
 ```bash
-aux4 google search-console sitemaps list https://example.com
+aux4 google search-console sitemaps list example.com
 ```
 
 ```text

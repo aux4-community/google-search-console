@@ -12,7 +12,7 @@ Data is typically available with a 2-3 day delay. Dates use PST timezone (UTC-8)
 aux4 google search-console query <siteUrl> [--startDate <date>] [--endDate <date>] [--dimensions <dims>] [--searchType <type>] [--rowLimit <n>] [--startRow <n>]
 ```
 
-siteUrl       Site URL including protocol (e.g. https://example.com or sc-domain:example.com)
+siteUrl       Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected. Accepts example.com, sc-domain:example.com, or https://example.com.
 --startDate   Start date in YYYY-MM-DD format (required)
 --endDate     End date in YYYY-MM-DD format (required)
 --dimensions  Comma-separated: query, page, country, device, searchAppearance, date
@@ -23,7 +23,7 @@ siteUrl       Site URL including protocol (e.g. https://example.com or sc-domain
 #### Example
 
 ```bash
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions query,page
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions query,page
 ```
 
 ```text
@@ -44,23 +44,23 @@ aux4 google search-console query https://example.com --startDate 2024-01-01 --en
 Get top search queries:
 
 ```bash
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions query --rowLimit 50
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions query --rowLimit 50
 ```
 
 Get performance by country:
 
 ```bash
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions country
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions country
 ```
 
 Get daily trend:
 
 ```bash
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions date
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions date
 ```
 
 Discover performance:
 
 ```bash
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31 --searchType discover --dimensions page
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31 --searchType discover --dimensions page
 ```

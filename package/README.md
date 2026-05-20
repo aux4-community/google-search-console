@@ -53,13 +53,13 @@ aux4 google search-console sites list
 Query search performance for the last month:
 
 ```bash
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31
 ```
 
 Inspect a URL's index status:
 
 ```bash
-aux4 google search-console inspect https://example.com/page --siteUrl https://example.com
+aux4 google search-console inspect https://example.com/page --siteUrl example.com
 ```
 
 ## Search Analytics — query performance data
@@ -69,7 +69,7 @@ aux4 google search-console inspect https://example.com/page --siteUrl https://ex
 Get aggregate clicks, impressions, CTR, and position:
 
 ```bash
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31
 ```
 
 ### Group by dimensions
@@ -77,25 +77,25 @@ aux4 google search-console query https://example.com --startDate 2024-01-01 --en
 Get top search queries:
 
 ```bash
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions query --rowLimit 50
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions query --rowLimit 50
 ```
 
 Get performance by page:
 
 ```bash
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions page
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions page
 ```
 
 Get daily trend:
 
 ```bash
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions date
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions date
 ```
 
 Combine dimensions:
 
 ```bash
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions query,page,country
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions query,page,country
 ```
 
 ### Available dimensions
@@ -110,7 +110,7 @@ aux4 google search-console query https://example.com --startDate 2024-01-01 --en
 ### Filter by search type
 
 ```bash
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31 --searchType image
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31 --searchType image
 ```
 
 Supported types: `web` (default), `image`, `video`, `news`, `discover`, `googleNews`
@@ -120,8 +120,8 @@ Supported types: `web` (default), `image`, `video`, `news`, `discover`, `googleN
 Results are limited to 1000 rows by default (max 25000). Use `--startRow` to paginate:
 
 ```bash
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions query --rowLimit 1000 --startRow 0
-aux4 google search-console query https://example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions query --rowLimit 1000 --startRow 1000
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions query --rowLimit 1000 --startRow 0
+aux4 google search-console query example.com --startDate 2024-01-01 --endDate 2024-01-31 --dimensions query --rowLimit 1000 --startRow 1000
 ```
 
 ## URL Inspection
@@ -129,7 +129,7 @@ aux4 google search-console query https://example.com --startDate 2024-01-01 --en
 Inspect a URL's index status and crawl information:
 
 ```bash
-aux4 google search-console inspect https://example.com/page --siteUrl https://example.com
+aux4 google search-console inspect https://example.com/page --siteUrl example.com
 ```
 
 Returns index status, crawl time, robots.txt state, and whether the page is indexed.
@@ -145,19 +145,19 @@ aux4 google search-console sites list
 ### Get site info
 
 ```bash
-aux4 google search-console sites get https://example.com
+aux4 google search-console sites get example.com
 ```
 
 ### Add a site
 
 ```bash
-aux4 google search-console sites add https://example.com
+aux4 google search-console sites add example.com
 ```
 
 ### Remove a site
 
 ```bash
-aux4 google search-console sites delete https://example.com
+aux4 google search-console sites delete example.com
 ```
 
 ## Sitemaps — manage submitted sitemaps
@@ -165,35 +165,36 @@ aux4 google search-console sites delete https://example.com
 ### List sitemaps
 
 ```bash
-aux4 google search-console sitemaps list https://example.com
+aux4 google search-console sitemaps list example.com
 ```
 
 ### Get sitemap details
 
 ```bash
-aux4 google search-console sitemaps get https://example.com https://example.com/sitemap.xml
+aux4 google search-console sitemaps get example.com https://example.com/sitemap.xml
 ```
 
 ### Submit a sitemap
 
 ```bash
-aux4 google search-console sitemaps submit https://example.com https://example.com/sitemap.xml
+aux4 google search-console sitemaps submit example.com https://example.com/sitemap.xml
 ```
 
 ### Delete a sitemap
 
 ```bash
-aux4 google search-console sitemaps delete https://example.com https://example.com/sitemap.xml
+aux4 google search-console sitemaps delete example.com https://example.com/sitemap.xml
 ```
 
 ## Site URL Formats
 
-Search Console supports two site URL formats:
+You can pass the site URL in any of these formats -- domain properties are auto-detected:
 
-- **URL-prefix property**: `https://example.com` — covers only that specific URL prefix
-- **Domain property**: `sc-domain:example.com` — covers all URLs under the domain
+- **Plain domain**: `example.com` — auto-detected as `sc-domain:example.com`
+- **Explicit domain property**: `sc-domain:example.com` — used as-is
+- **URL-prefix property**: `https://example.com` — used as-is
 
-Use the same format as shown in your Search Console property list.
+All three formats are accepted by every command that takes a `siteUrl` argument.
 
 ## Environment Variables
 

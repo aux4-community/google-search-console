@@ -10,10 +10,10 @@ Requires write scopes: `https://www.googleapis.com/auth/webmasters`
 aux4 google search-console sites delete <siteUrl>
 ```
 
-siteUrl  The site URL to remove
+siteUrl  Site domain to remove (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.
 
 #### Example
 
 ```bash
-aux4 google search-console sites delete https://example.com
+aux4 google search-console sites delete example.com
 ```

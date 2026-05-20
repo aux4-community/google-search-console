@@ -8,13 +8,13 @@ The `get` command retrieves detailed information about a specific sitemap, inclu
 aux4 google search-console sitemaps get <siteUrl> <feedpath>
 ```
 
-siteUrl   Site URL (e.g. https://example.com)
+siteUrl   Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.
 feedpath  Sitemap URL (e.g. https://example.com/sitemap.xml)
 
 #### Example
 
 ```bash
-aux4 google search-console sitemaps get https://example.com https://example.com/sitemap.xml
+aux4 google search-console sitemaps get example.com https://example.com/sitemap.xml
 ```
 
 ```text

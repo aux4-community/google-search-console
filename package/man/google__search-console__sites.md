@@ -19,5 +19,5 @@ aux4 google search-console sites <subcommand>
 
 ```bash
 aux4 google search-console sites list
-aux4 google search-console sites get https://example.com
+aux4 google search-console sites get example.com
 ```

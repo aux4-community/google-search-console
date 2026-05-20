@@ -11,12 +11,12 @@ aux4 google search-console inspect <inspectionUrl> [--siteUrl <url>]
 ```
 
 inspectionUrl  The URL to inspect (must be under the specified site)
---siteUrl      The site URL as defined in Search Console (e.g. https://example.com)
+--siteUrl      Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.
 
 #### Example
 
 ```bash
-aux4 google search-console inspect https://example.com/page --siteUrl https://example.com
+aux4 google search-console inspect https://example.com/page --siteUrl example.com
 ```
 
 ```text
