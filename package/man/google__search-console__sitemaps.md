@@ -19,5 +19,5 @@ aux4 google search-console sitemaps <subcommand>
 
 ```bash
 aux4 google search-console sitemaps list example.com
-aux4 google search-console sitemaps submit example.com https://example.com/sitemap.xml
+aux4 google search-console sitemaps submit --siteUrl example.com --feedpath https://example.com/sitemap.xml
 ```

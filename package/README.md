@@ -2,9 +2,9 @@
 
 Commands to interact with Google Search Console using the Search Console API
 
-This package provides aux4 command wrappers for the [Google Search Console API](https://developers.google.com/webmaster-tools/v1/api_reference_index). It covers querying search analytics data (clicks, impressions, CTR, position), inspecting URL index status, managing verified sites, and managing sitemaps.
+This package provides aux4 command wrappers for the [Google Search Console API](https://developers.google.com/webmaster-tools/v1/api_reference_index). It covers querying search analytics data (clicks, impressions, CTR, position), inspecting URL index status, requesting indexing, managing verified sites, and managing sitemaps.
 
-Authentication is handled through the Google Workspace CLI (`gws`) with custom OAuth scopes — the same credential store used by other Google packages (Sheets, Drive, etc.).
+Authentication is handled by [community/google-auth](https://hub.aux4.io/package/community/google-auth), which stores a single OAuth2 token shared by every aux4 Google package.
 
 ## Installation
 
@@ -16,30 +16,37 @@ aux4 aux4 pkger install community/google-search-console
 
 This package requires:
 
-- **Google Workspace CLI** (`gws`) — for authentication and credential management
-  - [brew](https://brew.sh): `brew install googleworkspace-cli`
-  - [npm](https://www.npmjs.com): `npm install -g @googleworkspace/cli`
-- **jq** — for JSON processing
+- **jq** — for percent-encoding site and sitemap URLs into API path segments
   - [brew](https://brew.sh): `brew install jq`
+  - linux: `apt install jq`
 
 ## Prerequisites
 
-Authenticate with Search Console scopes (read-only):
+Authenticate once with `community/google-auth`. The scopes are resolved from the
+installed Google service packages, so no `--scopes` flag is needed:
 
 ```bash
-aux4 google auth login --scopes https://www.googleapis.com/auth/webmasters.readonly
+aux4 google auth login
 ```
 
-For write access (add/delete sites, submit/delete sitemaps):
+This package requests:
+
+- `https://www.googleapis.com/auth/webmasters` — read and write Search Console data
+- `https://www.googleapis.com/auth/indexing` — publish URL notifications to the Indexing API
+
+To request read-only access instead, log in with `--readonly true`. This package then
+asks for `https://www.googleapis.com/auth/webmasters.readonly` only, which means
+`sites add`, `sites delete`, `sitemaps submit`, `sitemaps delete` and `index` will be
+rejected by Google:
 
 ```bash
-aux4 google auth login --scopes https://www.googleapis.com/auth/webmasters
+aux4 google auth login --readonly true
 ```
 
-You can combine Search Console scopes with other Google services in a single login:
+Check the current state at any time:
 
 ```bash
-aux4 google auth login --services sheets,drive --scopes https://www.googleapis.com/auth/webmasters.readonly
+aux4 google auth status
 ```
 
 ## Quick Start
@@ -134,6 +141,22 @@ aux4 google search-console inspect https://example.com/page --siteUrl example.co
 
 Returns index status, crawl time, robots.txt state, and whether the page is indexed.
 
+## Indexing — request a crawl
+
+Ask Google to crawl a new or updated URL:
+
+```bash
+aux4 google search-console index https://example.com/page
+```
+
+Tell Google a URL is gone:
+
+```bash
+aux4 google search-console index https://example.com/removed --type URL_DELETED
+```
+
+**Note:** the Indexing API is write-only and has no read-only equivalent scope, so this command does not work after `aux4 google auth login --readonly true`.
+
 ## Sites — manage verified properties
 
 ### List all sites
@@ -171,20 +194,22 @@ aux4 google search-console sitemaps list example.com
 ### Get sitemap details
 
 ```bash
-aux4 google search-console sitemaps get example.com https://example.com/sitemap.xml
+aux4 google search-console sitemaps get --siteUrl example.com --feedpath https://example.com/sitemap.xml
 ```
 
 ### Submit a sitemap
 
 ```bash
-aux4 google search-console sitemaps submit example.com https://example.com/sitemap.xml
+aux4 google search-console sitemaps submit --siteUrl example.com --feedpath https://example.com/sitemap.xml
 ```
 
 ### Delete a sitemap
 
 ```bash
-aux4 google search-console sitemaps delete example.com https://example.com/sitemap.xml
+aux4 google search-console sitemaps delete --siteUrl example.com --feedpath https://example.com/sitemap.xml
 ```
+
+**Note:** `sitemaps get`, `submit` and `delete` take two values, so pass them as the named flags `--siteUrl` and `--feedpath` rather than as bare positional arguments.
 
 ## Site URL Formats
 
@@ -194,17 +219,14 @@ You can pass the site URL in any of these formats -- domain properties are auto-
 - **Explicit domain property**: `sc-domain:example.com` — used as-is
 - **URL-prefix property**: `https://example.com` — used as-is
 
-All three formats are accepted by every command that takes a `siteUrl` argument.
+All three formats are accepted by every command that takes a `siteUrl` argument, and are percent-encoded into the API path automatically.
 
 ## Environment Variables
 
-Authentication uses the same credential store as the Google Workspace CLI:
+- `AUX4_GOOGLE_TOKEN_FILE` — where the shared Google OAuth token lives. Defaults to `~/.aux4.config/.oauth/google.json`, the same location `aux4 google auth login` writes to, so it normally needs no setting.
 
-- `GOOGLE_WORKSPACE_CLI_TOKEN` — Pre-obtained OAuth2 access token (highest priority)
-- `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` — Path to credentials JSON file
-- `GOOGLE_WORKSPACE_CLI_CONFIG_DIR` — Override default config directory
+For the optional `integration` test group, set:
 
-For tests, set:
 - `SEARCH_CONSOLE_SITE_URL` — your verified site URL
 - `SEARCH_CONSOLE_START_DATE` — test date range start (YYYY-MM-DD)
 - `SEARCH_CONSOLE_END_DATE` — test date range end (YYYY-MM-DD)

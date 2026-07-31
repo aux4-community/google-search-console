@@ -2,19 +2,24 @@
 
 The `get` command retrieves detailed information about a specific sitemap, including its URL, type, submission time, and content breakdown (number of URLs, images, etc.).
 
+Both the site property and the sitemap feed path are path segments of the request, and both are percent-encoded automatically.
+
+This command takes two values, so pass them as the named flags `--siteUrl` and `--feedpath` rather than as bare positional arguments.
+
 #### Usage
 
 ```bash
-aux4 google search-console sitemaps get <siteUrl> <feedpath>
+aux4 google search-console sitemaps get --siteUrl <url> --feedpath <url> [--tokenFile <path>]
 ```
 
-siteUrl   Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.
-feedpath  Sitemap URL (e.g. https://example.com/sitemap.xml)
+--siteUrl    Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.
+--feedpath   Sitemap URL (e.g. https://example.com/sitemap.xml)
+--tokenFile  Where the shared Google OAuth token is stored (default: `~/.aux4.config/.oauth/google.json`, env `AUX4_GOOGLE_TOKEN_FILE`)
 
 #### Example
 
 ```bash
-aux4 google search-console sitemaps get example.com https://example.com/sitemap.xml
+aux4 google search-console sitemaps get --siteUrl example.com --feedpath https://example.com/sitemap.xml
 ```
 
 ```text

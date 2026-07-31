@@ -7,11 +7,12 @@ The inspection URL must belong to the site specified by `--siteUrl`. This is equ
 #### Usage
 
 ```bash
-aux4 google search-console inspect <inspectionUrl> [--siteUrl <url>]
+aux4 google search-console inspect <inspectionUrl> [--siteUrl <url>] [--tokenFile <path>]
 ```
 
 inspectionUrl  The URL to inspect (must be under the specified site)
 --siteUrl      Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.
+--tokenFile    Where the shared Google OAuth token is stored (default: `~/.aux4.config/.oauth/google.json`, env `AUX4_GOOGLE_TOKEN_FILE`)
 
 #### Example
 

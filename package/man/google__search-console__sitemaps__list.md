@@ -5,10 +5,11 @@ The `list` command returns all sitemaps submitted for a site in Google Search Co
 #### Usage
 
 ```bash
-aux4 google search-console sitemaps list <siteUrl>
+aux4 google search-console sitemaps list <siteUrl> [--tokenFile <path>]
 ```
 
-siteUrl  Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.
+siteUrl      Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected.
+--tokenFile  Where the shared Google OAuth token is stored (default: `~/.aux4.config/.oauth/google.json`, env `AUX4_GOOGLE_TOKEN_FILE`)
 
 #### Example
 

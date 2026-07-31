@@ -1,7 +1,7 @@
 {
   "scope": "community",
   "name": "google-search-console",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Commands to interact with Google Search Console using the Search Console API",
   "license": "MIT",
   "tags": [
@@ -13,14 +13,10 @@
     "cli"
   ],
   "dependencies": [
-    "community/google-auth"
+    "community/google-auth",
+    "aux4/curl"
   ],
   "system": [
-    [
-      "test:gws --version",
-      "brew:googleworkspace-cli",
-      "npm:@googleworkspace/cli"
-    ],
     [
       "test:jq --version",
       "brew:jq",
@@ -63,7 +59,7 @@
           "name": "services",
           "private": true,
           "execute": [
-            "echo '{\"name\":\"search-console\",\"scope\":\"https://www.googleapis.com/auth/webmasters.readonly\",\"description\":\"Access Google Search Console data\"}'"
+            "echo '{\"name\":\"search-console\",\"scope\":\"https://www.googleapis.com/auth/webmasters https://www.googleapis.com/auth/indexing\",\"readonlyScope\":\"https://www.googleapis.com/auth/webmasters.readonly\",\"description\":\"Access Google Search Console data and Indexing API\"}'"
           ],
           "help": {
             "text": "Output service metadata for auth resolution"
@@ -72,7 +68,11 @@
         {
           "name": "query",
           "execute": [
-            "${packageDir}/lib/query.sh values(siteUrl, startDate, endDate, dimensions, searchType, rowLimit, startRow)"
+            "set:site=!SITE=value(siteUrl) jq -cn 'env.SITE | (if test(\"^(https?://|sc-domain:)\") then . else \"sc-domain:\" + . end) | {resolved: ., encoded: @uri}'",
+            "set:site=json:${site}",
+            "set:dimensionList=!DIMENSIONS=value(dimensions) jq -rn 'env.DIMENSIONS | split(\",\") | map(select(. != \"\")) | if length == 0 then \"\" else tojson end'",
+            "set:requestUrl=${apiUrl}/webmasters/v3/sites/${site.encoded}/searchAnalytics/query",
+            "aux4 curl auth-request --provider google --tokenFile param(tokenFile) --method POST --header 'Content-Type: application/json' --url value(requestUrl) --body 'object(startDate, endDate, searchType:type, rowLimit, startRow, dimensionList:dimensions)'"
           ],
           "help": {
             "text": "Query search analytics data (clicks, impressions, CTR, position)",
@@ -111,12 +111,34 @@
               {
                 "name": "rowLimit",
                 "text": "Maximum number of rows to return (max 25000)",
-                "default": "1000"
+                "default": "1000",
+                "type": "number"
               },
               {
                 "name": "startRow",
                 "text": "Zero-based start row for pagination",
-                "default": "0"
+                "default": "0",
+                "type": "number"
+              },
+              {
+                "name": "dimensionList",
+                "text": "Dimensions as a JSON array, derived from --dimensions",
+                "default": "",
+                "type": "json",
+                "private": true
+              },
+              {
+                "name": "tokenFile",
+                "text": "Where the Google OAuth token is stored",
+                "default": "${aux4HomeDir}/.oauth/google.json",
+                "env": "AUX4_GOOGLE_TOKEN_FILE"
+              },
+              {
+                "name": "apiUrl",
+                "text": "Search Console API base URL",
+                "default": "https://searchconsole.googleapis.com",
+                "env": "SEARCH_CONSOLE_API_URL",
+                "private": true
               }
             ]
           }
@@ -124,7 +146,11 @@
         {
           "name": "inspect",
           "execute": [
-            "${packageDir}/lib/inspect.sh values(inspectionUrl, siteUrl)"
+            "set:site=!SITE=value(siteUrl) jq -cn 'env.SITE | (if test(\"^(https?://|sc-domain:)\") then . else \"sc-domain:\" + . end) | {resolved: ., encoded: @uri}'",
+            "set:site=json:${site}",
+            "set:apiPath=/v1/urlInspection/index:inspect",
+            "set:requestUrl=${apiUrl}${apiPath}",
+            "aux4 curl auth-request --provider google --tokenFile param(tokenFile) --method POST --header 'Content-Type: application/json' --url value(requestUrl) --body 'object(inspectionUrl, site.resolved:siteUrl)'"
           ],
           "help": {
             "text": "Inspect a URL's index status and crawl information",
@@ -137,6 +163,55 @@
               {
                 "name": "siteUrl",
                 "text": "Site domain (e.g. example.com)"
+              },
+              {
+                "name": "tokenFile",
+                "text": "Where the Google OAuth token is stored",
+                "default": "${aux4HomeDir}/.oauth/google.json",
+                "env": "AUX4_GOOGLE_TOKEN_FILE"
+              },
+              {
+                "name": "apiUrl",
+                "text": "Search Console API base URL",
+                "default": "https://searchconsole.googleapis.com",
+                "env": "SEARCH_CONSOLE_API_URL",
+                "private": true
+              }
+            ]
+          }
+        },
+        {
+          "name": "index",
+          "execute": [
+            "set:apiPath=/v3/urlNotifications:publish",
+            "set:requestUrl=${indexingApiUrl}${apiPath}",
+            "aux4 curl auth-request --provider google --tokenFile param(tokenFile) --method POST --header 'Content-Type: application/json' --url value(requestUrl) --body 'object(url, type)'"
+          ],
+          "help": {
+            "text": "Request Google to index or re-index a URL via the Indexing API",
+            "variables": [
+              {
+                "name": "url",
+                "text": "Full URL to index (e.g. https://example.com/page)",
+                "arg": true
+              },
+              {
+                "name": "type",
+                "text": "Notification type (URL_UPDATED or URL_DELETED)",
+                "default": "URL_UPDATED"
+              },
+              {
+                "name": "tokenFile",
+                "text": "Where the Google OAuth token is stored",
+                "default": "${aux4HomeDir}/.oauth/google.json",
+                "env": "AUX4_GOOGLE_TOKEN_FILE"
+              },
+              {
+                "name": "indexingApiUrl",
+                "text": "Indexing API base URL",
+                "default": "https://indexing.googleapis.com",
+                "env": "GOOGLE_INDEXING_API_URL",
+                "private": true
               }
             ]
           }
@@ -167,18 +242,36 @@
         {
           "name": "list",
           "execute": [
-            "${packageDir}/lib/gapi.sh GET https://searchconsole.googleapis.com/webmasters/v3/sites"
+            "set:apiPath=/webmasters/v3/sites",
+            "set:requestUrl=${apiUrl}${apiPath}",
+            "aux4 curl auth-request --provider google --tokenFile param(tokenFile) --url value(requestUrl)"
           ],
           "help": {
-            "text": "List all verified sites in Search Console"
+            "text": "List all verified sites in Search Console",
+            "variables": [
+              {
+                "name": "tokenFile",
+                "text": "Where the Google OAuth token is stored",
+                "default": "${aux4HomeDir}/.oauth/google.json",
+                "env": "AUX4_GOOGLE_TOKEN_FILE"
+              },
+              {
+                "name": "apiUrl",
+                "text": "Search Console API base URL",
+                "default": "https://searchconsole.googleapis.com",
+                "env": "SEARCH_CONSOLE_API_URL",
+                "private": true
+              }
+            ]
           }
         },
         {
           "name": "get",
           "execute": [
-            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
-            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
-            "${packageDir}/lib/gapi.sh GET 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}'"
+            "set:site=!SITE=value(siteUrl) jq -cn 'env.SITE | (if test(\"^(https?://|sc-domain:)\") then . else \"sc-domain:\" + . end) | {resolved: ., encoded: @uri}'",
+            "set:site=json:${site}",
+            "set:requestUrl=${apiUrl}/webmasters/v3/sites/${site.encoded}",
+            "aux4 curl auth-request --provider google --tokenFile param(tokenFile) --url value(requestUrl)"
           ],
           "help": {
             "text": "Get information about a specific site",
@@ -187,6 +280,19 @@
                 "name": "siteUrl",
                 "text": "Site domain (e.g. example.com)",
                 "arg": true
+              },
+              {
+                "name": "tokenFile",
+                "text": "Where the Google OAuth token is stored",
+                "default": "${aux4HomeDir}/.oauth/google.json",
+                "env": "AUX4_GOOGLE_TOKEN_FILE"
+              },
+              {
+                "name": "apiUrl",
+                "text": "Search Console API base URL",
+                "default": "https://searchconsole.googleapis.com",
+                "env": "SEARCH_CONSOLE_API_URL",
+                "private": true
               }
             ]
           }
@@ -194,9 +300,10 @@
         {
           "name": "add",
           "execute": [
-            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
-            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
-            "${packageDir}/lib/gapi.sh PUT 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}'"
+            "set:site=!SITE=value(siteUrl) jq -cn 'env.SITE | (if test(\"^(https?://|sc-domain:)\") then . else \"sc-domain:\" + . end) | {resolved: ., encoded: @uri}'",
+            "set:site=json:${site}",
+            "set:requestUrl=${apiUrl}/webmasters/v3/sites/${site.encoded}",
+            "aux4 curl auth-request --provider google --tokenFile param(tokenFile) --method PUT --url value(requestUrl)"
           ],
           "help": {
             "text": "Add a site to Search Console",
@@ -205,6 +312,19 @@
                 "name": "siteUrl",
                 "text": "Site domain to add (e.g. example.com)",
                 "arg": true
+              },
+              {
+                "name": "tokenFile",
+                "text": "Where the Google OAuth token is stored",
+                "default": "${aux4HomeDir}/.oauth/google.json",
+                "env": "AUX4_GOOGLE_TOKEN_FILE"
+              },
+              {
+                "name": "apiUrl",
+                "text": "Search Console API base URL",
+                "default": "https://searchconsole.googleapis.com",
+                "env": "SEARCH_CONSOLE_API_URL",
+                "private": true
               }
             ]
           }
@@ -213,9 +333,10 @@
           "name": "delete",
           "execute": [
             "confirm:Are you sure you want to remove this site from Search Console?",
-            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
-            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
-            "${packageDir}/lib/gapi.sh DELETE 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}'"
+            "set:site=!SITE=value(siteUrl) jq -cn 'env.SITE | (if test(\"^(https?://|sc-domain:)\") then . else \"sc-domain:\" + . end) | {resolved: ., encoded: @uri}'",
+            "set:site=json:${site}",
+            "set:requestUrl=${apiUrl}/webmasters/v3/sites/${site.encoded}",
+            "aux4 curl auth-request --provider google --tokenFile param(tokenFile) --method DELETE --url value(requestUrl)"
           ],
           "help": {
             "text": "Remove a site from Search Console",
@@ -224,6 +345,19 @@
                 "name": "siteUrl",
                 "text": "Site domain to remove (e.g. example.com)",
                 "arg": true
+              },
+              {
+                "name": "tokenFile",
+                "text": "Where the Google OAuth token is stored",
+                "default": "${aux4HomeDir}/.oauth/google.json",
+                "env": "AUX4_GOOGLE_TOKEN_FILE"
+              },
+              {
+                "name": "apiUrl",
+                "text": "Search Console API base URL",
+                "default": "https://searchconsole.googleapis.com",
+                "env": "SEARCH_CONSOLE_API_URL",
+                "private": true
               }
             ]
           }
@@ -236,9 +370,10 @@
         {
           "name": "list",
           "execute": [
-            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
-            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
-            "${packageDir}/lib/gapi.sh GET 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}/sitemaps'"
+            "set:site=!SITE=value(siteUrl) jq -cn 'env.SITE | (if test(\"^(https?://|sc-domain:)\") then . else \"sc-domain:\" + . end) | {resolved: ., encoded: @uri}'",
+            "set:site=json:${site}",
+            "set:requestUrl=${apiUrl}/webmasters/v3/sites/${site.encoded}/sitemaps",
+            "aux4 curl auth-request --provider google --tokenFile param(tokenFile) --url value(requestUrl)"
           ],
           "help": {
             "text": "List sitemaps for a site",
@@ -247,6 +382,19 @@
                 "name": "siteUrl",
                 "text": "Site domain (e.g. example.com)",
                 "arg": true
+              },
+              {
+                "name": "tokenFile",
+                "text": "Where the Google OAuth token is stored",
+                "default": "${aux4HomeDir}/.oauth/google.json",
+                "env": "AUX4_GOOGLE_TOKEN_FILE"
+              },
+              {
+                "name": "apiUrl",
+                "text": "Search Console API base URL",
+                "default": "https://searchconsole.googleapis.com",
+                "env": "SEARCH_CONSOLE_API_URL",
+                "private": true
               }
             ]
           }
@@ -254,10 +402,10 @@
         {
           "name": "get",
           "execute": [
-            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
-            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
-            "set:encodedFeed=!echo -n 'value(feedpath)' | jq -Rr @uri",
-            "${packageDir}/lib/gapi.sh GET 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}/sitemaps/${encodedFeed}'"
+            "set:site=!SITE=value(siteUrl) FEED=value(feedpath) jq -cn 'env.SITE | (if test(\"^(https?://|sc-domain:)\") then . else \"sc-domain:\" + . end) | {resolved: ., encoded: @uri, feed: (env.FEED | @uri)}'",
+            "set:site=json:${site}",
+            "set:requestUrl=${apiUrl}/webmasters/v3/sites/${site.encoded}/sitemaps/${site.feed}",
+            "aux4 curl auth-request --provider google --tokenFile param(tokenFile) --url value(requestUrl)"
           ],
           "help": {
             "text": "Get information about a specific sitemap",
@@ -271,6 +419,19 @@
                 "name": "feedpath",
                 "text": "Sitemap URL (e.g. https://example.com/sitemap.xml)",
                 "arg": true
+              },
+              {
+                "name": "tokenFile",
+                "text": "Where the Google OAuth token is stored",
+                "default": "${aux4HomeDir}/.oauth/google.json",
+                "env": "AUX4_GOOGLE_TOKEN_FILE"
+              },
+              {
+                "name": "apiUrl",
+                "text": "Search Console API base URL",
+                "default": "https://searchconsole.googleapis.com",
+                "env": "SEARCH_CONSOLE_API_URL",
+                "private": true
               }
             ]
           }
@@ -278,10 +439,10 @@
         {
           "name": "submit",
           "execute": [
-            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
-            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
-            "set:encodedFeed=!echo -n 'value(feedpath)' | jq -Rr @uri",
-            "${packageDir}/lib/gapi.sh PUT 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}/sitemaps/${encodedFeed}'"
+            "set:site=!SITE=value(siteUrl) FEED=value(feedpath) jq -cn 'env.SITE | (if test(\"^(https?://|sc-domain:)\") then . else \"sc-domain:\" + . end) | {resolved: ., encoded: @uri, feed: (env.FEED | @uri)}'",
+            "set:site=json:${site}",
+            "set:requestUrl=${apiUrl}/webmasters/v3/sites/${site.encoded}/sitemaps/${site.feed}",
+            "aux4 curl auth-request --provider google --tokenFile param(tokenFile) --method PUT --url value(requestUrl)"
           ],
           "help": {
             "text": "Submit a sitemap for a site",
@@ -295,6 +456,19 @@
                 "name": "feedpath",
                 "text": "Sitemap URL to submit (e.g. https://example.com/sitemap.xml)",
                 "arg": true
+              },
+              {
+                "name": "tokenFile",
+                "text": "Where the Google OAuth token is stored",
+                "default": "${aux4HomeDir}/.oauth/google.json",
+                "env": "AUX4_GOOGLE_TOKEN_FILE"
+              },
+              {
+                "name": "apiUrl",
+                "text": "Search Console API base URL",
+                "default": "https://searchconsole.googleapis.com",
+                "env": "SEARCH_CONSOLE_API_URL",
+                "private": true
               }
             ]
           }
@@ -303,10 +477,10 @@
           "name": "delete",
           "execute": [
             "confirm:Are you sure you want to delete this sitemap?",
-            "set:resolvedSite=!echo ${siteUrl} | grep -qE '^(https?://|sc-domain:)' && echo ${siteUrl} || echo sc-domain:${siteUrl}",
-            "set:encodedUrl=!echo -n '${resolvedSite}' | jq -Rr @uri",
-            "set:encodedFeed=!echo -n 'value(feedpath)' | jq -Rr @uri",
-            "${packageDir}/lib/gapi.sh DELETE 'https://searchconsole.googleapis.com/webmasters/v3/sites/${encodedUrl}/sitemaps/${encodedFeed}'"
+            "set:site=!SITE=value(siteUrl) FEED=value(feedpath) jq -cn 'env.SITE | (if test(\"^(https?://|sc-domain:)\") then . else \"sc-domain:\" + . end) | {resolved: ., encoded: @uri, feed: (env.FEED | @uri)}'",
+            "set:site=json:${site}",
+            "set:requestUrl=${apiUrl}/webmasters/v3/sites/${site.encoded}/sitemaps/${site.feed}",
+            "aux4 curl auth-request --provider google --tokenFile param(tokenFile) --method DELETE --url value(requestUrl)"
           ],
           "help": {
             "text": "Delete a sitemap from Search Console",
@@ -320,6 +494,19 @@
                 "name": "feedpath",
                 "text": "Sitemap URL to delete (e.g. https://example.com/sitemap.xml)",
                 "arg": true
+              },
+              {
+                "name": "tokenFile",
+                "text": "Where the Google OAuth token is stored",
+                "default": "${aux4HomeDir}/.oauth/google.json",
+                "env": "AUX4_GOOGLE_TOKEN_FILE"
+              },
+              {
+                "name": "apiUrl",
+                "text": "Search Console API base URL",
+                "default": "https://searchconsole.googleapis.com",
+                "env": "SEARCH_CONSOLE_API_URL",
+                "private": true
               }
             ]
           }

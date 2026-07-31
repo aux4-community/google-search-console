@@ -1,8 +1,7 @@
-# google search-console sites
+# google search-console inspect
 
-Part of the `core` group in `test.suite.md`. The Search Console API is replaced by a
-local echo server so every verb — GET, PUT and DELETE — can be asserted without a
-real Google account.
+Part of the `core` group in `test.suite.md`. The URL Inspection API is replaced by a
+local echo server so the request body can be asserted without a real Google account.
 
 ## against a local mock API
 
@@ -30,18 +29,16 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
     do_GET = echo
     do_POST = echo
-    do_PUT = echo
-    do_DELETE = echo
     def log_message(self, fmt, *args):
         pass
 
-HTTPServer(('127.0.0.1', 18953), Handler).serve_forever()
+HTTPServer(('127.0.0.1', 18951), Handler).serve_forever()
 " >/dev/null 2>&1 &
 sleep 3
 ```
 
 ```afterAll
-pkill -f "18953" 2>/dev/null
+pkill -f "18951" 2>/dev/null
 ```
 
 ```file:google-token.json
@@ -57,54 +54,42 @@ pkill -f "18953" 2>/dev/null
 }
 ```
 
-### list should GET the sites collection
+### should POST to the urlInspection endpoint
 
 ```execute
-aux4 google search-console sites list --tokenFile google-token.json --apiUrl http://127.0.0.1:18953
+aux4 google search-console inspect https://example.com/page --siteUrl example.com --tokenFile google-token.json --apiUrl http://127.0.0.1:18951
 ```
 
 ```expect:partial
-"method": "GET"
+"method": "POST"
 ```
 
 ```expect:partial
-"path": "/webmasters/v3/sites"
+"path": "/v1/urlInspection/index:inspect"
 ```
 
-### get should GET the encoded site resource
+### should send the resolved sc-domain property in the body, not in the path
 
 ```execute
-aux4 google search-console sites get example.com --tokenFile google-token.json --apiUrl http://127.0.0.1:18953
+aux4 google search-console inspect https://example.com/page --siteUrl example.com --tokenFile google-token.json --apiUrl http://127.0.0.1:18951 | aux4 json get --path '$.body'
 ```
 
-```expect:partial
-"path": "/webmasters/v3/sites/sc-domain%3Aexample.com"
+```expect:json
+{
+  "inspectionUrl": "https://example.com/page",
+  "siteUrl": "sc-domain:example.com"
+}
 ```
 
-### add should PUT the encoded site resource
+### should keep a URL-prefix property unchanged in the body
 
 ```execute
-aux4 google search-console sites add example.com --tokenFile google-token.json --apiUrl http://127.0.0.1:18953
+aux4 google search-console inspect https://example.com/page --siteUrl https://example.com/ --tokenFile google-token.json --apiUrl http://127.0.0.1:18951 | aux4 json get --path '$.body'
 ```
 
-```expect:partial
-"method": "PUT"
-```
-
-```expect:partial
-"path": "/webmasters/v3/sites/sc-domain%3Aexample.com"
-```
-
-### delete should DELETE the encoded site resource
-
-```execute
-aux4 google search-console sites delete example.com --yes --tokenFile google-token.json --apiUrl http://127.0.0.1:18953
-```
-
-```expect:partial
-"method": "DELETE"
-```
-
-```expect:partial
-"path": "/webmasters/v3/sites/sc-domain%3Aexample.com"
+```expect:json
+{
+  "inspectionUrl": "https://example.com/page",
+  "siteUrl": "https://example.com/"
+}
 ```

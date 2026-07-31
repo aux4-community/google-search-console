@@ -9,7 +9,7 @@ Data is typically available with a 2-3 day delay. Dates use PST timezone (UTC-8)
 #### Usage
 
 ```bash
-aux4 google search-console query <siteUrl> [--startDate <date>] [--endDate <date>] [--dimensions <dims>] [--searchType <type>] [--rowLimit <n>] [--startRow <n>]
+aux4 google search-console query <siteUrl> [--startDate <date>] [--endDate <date>] [--dimensions <dims>] [--searchType <type>] [--rowLimit <n>] [--startRow <n>] [--tokenFile <path>]
 ```
 
 siteUrl       Site domain (e.g. example.com) or URL-prefix property (e.g. https://example.com). Domain properties are auto-detected. Accepts example.com, sc-domain:example.com, or https://example.com.
@@ -19,6 +19,7 @@ siteUrl       Site domain (e.g. example.com) or URL-prefix property (e.g. https:
 --searchType  Filter by search type: web (default), image, video, news, discover, googleNews
 --rowLimit    Maximum rows to return, 1-25000 (default: 1000)
 --startRow    Zero-based offset for pagination (default: 0)
+--tokenFile   Where the shared Google OAuth token is stored (default: `~/.aux4.config/.oauth/google.json`, env `AUX4_GOOGLE_TOKEN_FILE`)
 
 #### Example
 

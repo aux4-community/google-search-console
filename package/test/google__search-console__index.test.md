@@ -1,8 +1,8 @@
-# google search-console sites
+# google search-console index
 
-Part of the `core` group in `test.suite.md`. The Search Console API is replaced by a
-local echo server so every verb — GET, PUT and DELETE — can be asserted without a
-real Google account.
+Part of the `core` group in `test.suite.md`. The Indexing API is replaced by a local
+echo server so the published notification can be asserted without a real Google
+account.
 
 ## against a local mock API
 
@@ -30,18 +30,16 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
     do_GET = echo
     do_POST = echo
-    do_PUT = echo
-    do_DELETE = echo
     def log_message(self, fmt, *args):
         pass
 
-HTTPServer(('127.0.0.1', 18953), Handler).serve_forever()
+HTTPServer(('127.0.0.1', 18952), Handler).serve_forever()
 " >/dev/null 2>&1 &
 sleep 3
 ```
 
 ```afterAll
-pkill -f "18953" 2>/dev/null
+pkill -f "18952" 2>/dev/null
 ```
 
 ```file:google-token.json
@@ -50,61 +48,49 @@ pkill -f "18953" 2>/dev/null
   "clientSecret": "test-secret",
   "authUrl": "https://accounts.google.com/o/oauth2/v2/auth",
   "tokenUrl": "https://oauth2.googleapis.com/token",
-  "scopes": "https://www.googleapis.com/auth/webmasters",
+  "scopes": "https://www.googleapis.com/auth/indexing",
   "accessToken": "test-access-token",
   "refreshToken": "test-refresh-token",
   "expiresAt": "2099-12-31T23:59:59Z"
 }
 ```
 
-### list should GET the sites collection
+### should publish a URL_UPDATED notification by default
 
 ```execute
-aux4 google search-console sites list --tokenFile google-token.json --apiUrl http://127.0.0.1:18953
+aux4 google search-console index https://example.com/page --tokenFile google-token.json --indexingApiUrl http://127.0.0.1:18952
 ```
 
 ```expect:partial
-"method": "GET"
+"path": "/v3/urlNotifications:publish"
 ```
 
 ```expect:partial
-"path": "/webmasters/v3/sites"
+"authorization": "Bearer test-access-token"
 ```
 
-### get should GET the encoded site resource
+### should send url and type in the body
 
 ```execute
-aux4 google search-console sites get example.com --tokenFile google-token.json --apiUrl http://127.0.0.1:18953
+aux4 google search-console index https://example.com/page --tokenFile google-token.json --indexingApiUrl http://127.0.0.1:18952 | aux4 json get --path '$.body'
 ```
 
-```expect:partial
-"path": "/webmasters/v3/sites/sc-domain%3Aexample.com"
+```expect:json
+{
+  "type": "URL_UPDATED",
+  "url": "https://example.com/page"
+}
 ```
 
-### add should PUT the encoded site resource
+### should publish a URL_DELETED notification when asked
 
 ```execute
-aux4 google search-console sites add example.com --tokenFile google-token.json --apiUrl http://127.0.0.1:18953
+aux4 google search-console index https://example.com/gone --type URL_DELETED --tokenFile google-token.json --indexingApiUrl http://127.0.0.1:18952 | aux4 json get --path '$.body'
 ```
 
-```expect:partial
-"method": "PUT"
-```
-
-```expect:partial
-"path": "/webmasters/v3/sites/sc-domain%3Aexample.com"
-```
-
-### delete should DELETE the encoded site resource
-
-```execute
-aux4 google search-console sites delete example.com --yes --tokenFile google-token.json --apiUrl http://127.0.0.1:18953
-```
-
-```expect:partial
-"method": "DELETE"
-```
-
-```expect:partial
-"path": "/webmasters/v3/sites/sc-domain%3Aexample.com"
+```expect:json
+{
+  "type": "URL_DELETED",
+  "url": "https://example.com/gone"
+}
 ```
