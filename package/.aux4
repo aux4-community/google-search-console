@@ -1,7 +1,7 @@
 {
   "scope": "community",
   "name": "google-search-console",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Commands to interact with Google Search Console using the Search Console API",
   "license": "MIT",
   "tags": [
